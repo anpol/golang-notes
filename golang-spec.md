@@ -8,6 +8,8 @@ GitHub width is 100
 
 ## Semicolons
 
+Semicolons ";" are **terminators**.
+
 Go programs may omit most of these semicolons using the following two rules:
 
 1. A semicolon is automatically inserted at the end of the line if the last
@@ -21,8 +23,28 @@ Go programs may omit most of these semicolons using the following two rules:
 2. To allow complex statements to occupy a single line, a semicolon may be
    omitted before a closing ")" or "}".
 
-**NOTE:** A semicolon before ")" could occur in constructions like `var`,
-`const`, `type`, `import`.
+**A ";" before ")"** could occur in constructions: `import`, `type`, `var`, `const`.
+
+**A ";" before "}"** could occur in constructions: `struct`, `interface`, in
+production `Block`.
+
+**A ";" before "]"** could not occur in any production, according to grammar.
+
+## Commas
+
+Commas "," are usually **delimiters**.
+
+An additional comma could also be used as a **terminator**, in such case the
+comma is optional and could occur before another delimiter.
+
+**A "," before ")"** could occur in the following productions:
+
+  - declarations: `Parameters` (parameter list, result list)
+  - expressions: `Arguments`, `Conversion`
+
+**A "," before "}"** could occur in composite literals.
+
+**A "," before "]"** could not occur in any production, according to grammar.
 
 ## Imaginary literals
 
@@ -42,15 +64,16 @@ followed by the lower-case letter i.
 
 There are four ways to represent the integer value as a numeric constant:
 
-- \x followed by exactly two hexadecimal digits;
-- \u followed by exactly four hexadecimal digits;
-- \U followed by exactly eight hexadecimal digits,
-- a plain backslash \ followed by exactly three octal digits.
+1. \\x followed by exactly two hexadecimal digits,
+    - \\X is not allowed;
+1. \\u followed by exactly four hexadecimal digits;
+1. \\U followed by exactly eight hexadecimal digits,
+1. a plain backslash \\ followed by exactly three octal digits.
 
 Quote escapes are not always valid:
 
-- \'   U+0027 single quote  (valid escape only within rune literals)
-- \"   U+0022 double quote  (valid escape only within string literals)
+- \\'   U+0027 single quote  (valid escape only within rune literals)
+- \\"   U+0022 double quote  (valid escape only within string literals)
 
 ## String literals
 
@@ -117,8 +140,20 @@ All numeric types are distinct except
 
 ## String types
 
-A string's bytes can be accessed by integer. It is illegal to take the address
-of such an element; `&s[i]` is invalid.
+A string's bytes can be accessed by an integer index. It is illegal to take the
+address of such an element; `&s[i]` is invalid.
+
+## Array types
+
+```ebnf
+ArrayType = "[" NonNegativeConstantExpression "]" ElementType ;
+```
+
+## Slice types
+
+```ebnf
+SliceType = "[]" ElementType ;
+```
 
 ## Struct types
 
@@ -135,11 +170,16 @@ A field declared with no field name is an **anonymous field**, also called an
 A field or method `f` of an anonymous field in a struct `x` is called promoted
 if `x.f` is a legal selector that denotes that field or method `f`.
 
+In other words, every field or method of an inner struct is promoted into the
+field or method of the outer struct.
+
 Promoted fields act like ordinary fields of a struct except that they cannot be
 used as field names in composite literals of the struct.
 
 - <https://stackoverflow.com/a/34083564/2958047>
 - <https://medium.com/golangspec/promoted-fields-and-methods-in-go-4e8d7aefb3e3>
+
+### Field Tags
 
 A field declaration may be followed by a tag. The tags are made visible through
 a reflection interface; e.g. a tag could define protobuf field number.
@@ -147,7 +187,8 @@ a reflection interface; e.g. a tag could define protobuf field number.
 ## Function types
 
 ```ebnf
-FunctionType      = "func" Signature ;          (* Compare to MethodSpec *)
+                    (* Compare to MethodSpec and FunctionDecl *)
+FunctionType      = "func" Signature ;
 Signature         = Parameters [ Result ] ;
 Result            = Parameters | Type ;
 Parameters        = "(" [ ParameterList [ "," ] ] ")" ;
@@ -166,13 +207,15 @@ All non-blank names in the signature must be unique.
 - Exactly one unnamed result may be written as an unparenthesized type.
 
 ```go
-func f(_ int, ) () {}   // (1) Possible declaration,
-                        // - "," before ")" is optional
-                        // - identifier could be "_" (blank identifier)
-func f(int) {}          // Same as (1) above,
-                        // - IdentifierList is optional
-func f(_, _ int, ) (x int, ) { x = 1; return }    // (2) Also possible
-func f(_, _ int) int { return 1 }                 // Same as (2) above
+func f(_ int, ) ()      // Possible declaration,
+                        //   - "," before ")" is optional
+                        //   - identifier could be "_" (blank identifier)
+func f(int)             // Same as the previous one,
+                        //   - IdentifierList is optional
+                        //   - result list is optional
+
+func g(_, _ int, ) (x int, ) { x = 1; return }    // Possible definition
+func g(_, _ int) int { return 1 }                 // Same as the previous one
 
 func(prefix string, values ...int)                // Variadic function
                        // "..." is only possible for the last parameter
@@ -182,13 +225,14 @@ func(n int) func(p *T)                            // Curried function
 ## Interface types
 
 ```ebnf
-InterfaceTypeDecl  = "type" identifier InterfaceType ;      (* Naming requires "type" *)
-InterfaceType      = "interface" "{" { InterfaceSpec ";" } "}" ;  (* Possibly unnamed *)
-InterfaceSpec      = MethodSpec | InterfaceTypeName ;
+InterfaceTypeDecl  = "type" identifier InterfaceType ;     (* Name follows "type" *)
+InterfaceType      = "interface" "{" { InterSpec ";" } "}" ;  (* Possibly unnamed *)
+InterSpec          = MethodSpec | InterfaceTypeName ;
 InterfaceTypeName  = TypeName ;                 (* Embedded interface;
                                                    its methods are added *)
-MethodSpec         = MethodName Signature ;     (* Compare to FunctionType *)
-MethodName         = identifier ;               (* FunctionType uses "func" here *)
+                     (* Compare to FunctionType and FunctionDecl *)
+MethodSpec         = MethodName Signature ;
+MethodName         = identifier ;
 ```
 
 All types implement the empty interface:
@@ -328,24 +372,117 @@ An identifier is exported if both:
 
 The number of identifiers must be equal to the number of constant expressions.
 
-```go
+```ebnf
+ConstDecl   = "const" ( ConstSpec | ConstSpecs ) ;
+ConstSpecs  = "(" { ConstSpec ";" } ")" ) ;
+              (* Compare to VarSpec *)
+ConstSpec   = IdentifierList [ [ Type ] "=" ExpressionList ] ;
 ```
 
+If the type is present, **all constants take the type specified,** and the
+expressions must be assignable to that type.
+
+If the type is omitted, the constants take **the individual types of the
+corresponding expressions**.
+
+If the expression values are untyped constants, **the declared constants remain
+untyped**.
+
+Within a parenthesized-const-declaration-list the expression-list may be
+omitted from any but the first declaration.  Omitting the list of expressions
+is equivalent to repeating the previous list.
+
 ## Iota
+
+The predeclared identifier `iota` represents successive untyped integer
+constants.
+
+It is reset to 0 whenever the reserved word `const` appears in the source and
+increments after each ConstSpec.  Within an ExpressionList, the value of each
+`iota` is the same.
+
 ## Type declarations
+
+The new type is different from the existing type; see Type Identity.
+
+The declared type does not inherit any methods bound to the existing type, but
+the method set of an interface type remains unchanged.
+
+A type declaration may be used to define a different boolean, numeric, or
+string type and attach methods to it.
+
 ## Variable declarations
 
-TODO: compare grammer of const/var using a comparison table.
+```ebnf
+VarDecl     = "var" ( VarSpec | VarSpecs ) ;
+VarSpecs    = "(" { VarSpec ";" } ")" ) ;
+              (* Compare to ConstSpec *)
+VarSpec     = IdentifierList Type [ "=" ExpressionList ] |
+              IdentifierList        "=" ExpressionList ;
+
+VarSpec     = IdentifierList ( Type [ "=" ExpressionList ] | "=" ExpressionList ) ;
+```
+
+Compare ConstSpec to VarSpec:
+
+|                         | ConstSpec | VarSpec | Notes                                         |
+|-------------------------|-----------|---------|-----------------------------------------------|
+| `Type`                  | -         | OK      | Constants must have values, if they have type |
+| `Type = ExpressionList` | OK        | OK      |                                               |
+| `= ExpressionList`      | OK        | OK      | Type is inferred                              |
+| *nothing at all*        | OK        | -       | ConstSpec: previous `ExpressionList` is used  |
+|                         |           |         | VarSpec: should specify `Type` at least       |
+
+Unlike constants, variables cannot be untyped.  If no explicit type is
+specified and the value is an untyped constant, the value is first converted to
+its default type.
+
+The predeclared value `nil` cannot be used to initialize a variable with no
+explicit type.
 
 ## Short variable declarations
+
+Unlike regular variable declarations, a short variable declaration may
+*redeclare* variables if at least one of the non-blank variables is new. As a
+consequence, redeclaration can only appear in a multi-variable short
+declaration. Redeclaration does not introduce a new variable; it just assigns a
+new value to the original.
+
 ## Function declarations
+
+```ebnf
+                    (* Compare to MethodSpec and FunctionType *)
+FunctionDecl      = "func" FunctionName Signature [ FunctionBody ] ;
+FunctionName      = identifier ;
+FunctionBody      = Block ;
+```
+
+A function declaration may omit the body, if the function is implemented
+externally.
+
 ## Method declarations
+
+```ebnf
+MethodDecl        = "func" Receiver MethodName Signature [ FunctionBody ] ;
+Receiver          = Parameters ;  (* Single parameter with type restrictions *)
+```
+
+The receiver section must declare a single non-variadic parameter.  Its type
+must be of the form `T` or `*T`, possibly using parentheses.
+
+The type of a method is the type of a function with the receiver as first
+argument. However, a function declared this way is not a method.
+
+```go
+func (p *Point) Scale(factor float64)   // MethodSpec
+func(p *Point, factor float64)          // FunctionType of that method
+```
 
 # Expressions
 ## Operands
 ## Qualified identifiers
 ## Composite literals
 
-TBD: Reorder LiteralType components
-TBD: Grammar, split ElementList => Keyed/PlainElementList
-TBD: Grammar, split into struct, map, array/slice
+- TBD: Reorder LiteralType components
+- TBD: Grammar, split ElementList => Keyed/PlainElementList
+- TBD: Grammar, split into struct, map, array/slice
