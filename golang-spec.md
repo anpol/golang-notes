@@ -1,4 +1,8 @@
 % Notes for [The Go Programming Language Specification](https://golang.org/ref/spec)
+<!--
+vim:et
+GitHub width is 100
+-->
 
 # Lexical elements
 
@@ -17,7 +21,8 @@ Go programs may omit most of these semicolons using the following two rules:
 2. To allow complex statements to occupy a single line, a semicolon may be
    omitted before a closing ")" or "}".
 
-**NOTE:** A semicolon before ")" could occur in constructions like `var`, `const`, `type`, `import`.
+**NOTE:** A semicolon before ")" could occur in constructions like `var`,
+`const`, `type`, `import`.
 
 ## Imaginary literals
 
@@ -71,9 +76,11 @@ A constant value is represented by
 - the result value of some built-in functions such as
     - `unsafe.Sizeof` applied to any value,
     - `cap` or `len` applied to some expressions,
-    - `real` and `imag` applied to a complex constant and `complex` applied to numeric constants.
+    - `real` and `imag` applied to a complex constant and `complex` applied to
+      numeric constants.
 
-A default type is the type to which the constant is implicitly converted in contexts where a typed value is required.
+A default type is the type to which the constant is implicitly converted in
+contexts where a typed value is required.
 
 The default type of an untyped constant could be
 
@@ -98,14 +105,15 @@ type T4 T3          // []T1
 ## Method sets
 
 The method set of the corresponding pointer type `*T` is the set of all methods
-declared with receiver `*T` or `T` (that is, it also contains the method set of `T`).
+declared with receiver `*T` or `T` (that is, it also contains the method set of
+`T`).
 
 ## Numeric types
 
 All numeric types are distinct except
 
 - `byte`, which is an alias for `uint8`, and
-- `rune`, which is an alias for `int32`. 
+- `rune`, which is an alias for `int32`.
 
 ## String types
 
@@ -116,9 +124,9 @@ of such an element; `&s[i]` is invalid.
 
 ```ebnf
 StructType     = "struct" "{" { StructSpec ";" } "}" ;
-StructSpec     = (FieldDecl | AnonymousField) [ "...Tag..." ] ;
-FieldDecl      = IdentifierList Type .
-AnonymousField = [ "*" ] TypeName .
+StructSpec     = (FieldDecl | AnonymousField) [ "...tag..." ] ;
+FieldDecl      = IdentifierList Type ;
+AnonymousField = [ "*" ] TypeName ;
 ```
 
 A field declared with no field name is an **anonymous field**, also called an
@@ -139,42 +147,48 @@ a reflection interface; e.g. a tag could define protobuf field number.
 ## Function types
 
 ```ebnf
-FunctionType      = "func" Signature ;                    (* MethodSpec is similar *)
+FunctionType      = "func" Signature ;          (* Compare to MethodSpec *)
 Signature         = Parameters [ Result ] ;
 Result            = Parameters | Type ;
-Parameters        = "(" [ ParameterList [ "," ] ] ")" ;   (* "," is optional before ")", gofmt removes it *)
-ParameterList     = ParameterDecl { "," ParameterDecl } .
-ParameterDecl     = [ IdentifierList ] Type .             // IdentifierList is optional, while Type is not
-LastParameterDecl = [ identifier ] [ "..." ] Type .       // "..." is only possible for the last parameter
-IdentifierList    = identifier { "," identifier } .
-identifier        = letter { letter | unicode_digit }     // Could be blank_identifier
-blank_identifier  = "_" .
+Parameters        = "(" [ ParameterList [ "," ] ] ")" ;
+ParameterList     = ParameterDecl { "," ParameterDecl } ;
+ParameterDecl     = [ IdentifierList ] Type ;
+LastParameterDecl = [ identifier ] [ "..." ] Type ;
+IdentifierList    = identifier { "," identifier } ;
+identifier        = letter { letter | unicode_digit } ;
+blank_identifier  = "_" ;
 ```
 
 All non-blank names in the signature must be unique.
 
 - Parameter list is always parenthesized.
-- Result list is parenthesized except that if there is exactly one unnamed
-  result it may be written as an unparenthesized type.
+- Complex result list is always parenthesized.
+- Exactly one unnamed result may be written as an unparenthesized type.
 
 ```go
-func f(_ int, ) () {}                           // Possible declaration (1)
-func f(int) {}                                  // Same as (1) above
-func f(_, _ int, ) (x int, ) { x = 1; return }  // Also possible (2)
-func f(_, _ int) int { return 1 }               // Same as (2) above
-func(prefix string, values ...int)              // Variadic function
-func(n int) func(p *T)                          // Curried function
+func f(_ int, ) () {}   // (1) Possible declaration,
+                        // - "," before ")" is optional
+                        // - identifier could be "_" (blank identifier)
+func f(int) {}          // Same as (1) above,
+                        // - IdentifierList is optional
+func f(_, _ int, ) (x int, ) { x = 1; return }    // (2) Also possible
+func f(_, _ int) int { return 1 }                 // Same as (2) above
+
+func(prefix string, values ...int)                // Variadic function
+                       // "..." is only possible for the last parameter
+func(n int) func(p *T)                            // Curried function
 ```
 
 ## Interface types
 
 ```ebnf
-InterfaceTypeDecl  = "type" identifier InterfaceType .            // Naming requires "type" keyword
-InterfaceType      = "interface" "{" { InterfaceSpec ";" } "}" .  // Possibly unnamed interface
-InterfaceSpec      = MethodSpec | InterfaceTypeName .
-InterfaceTypeName  = TypeName .               // Embedded interface; its methods are added
-MethodSpec         = MethodName Signature .   // FunctionType uses is similar
-MethodName         = identifier .             // But FunctionType uses "func" instead of identifier
+InterfaceTypeDecl  = "type" identifier InterfaceType ;      (* Naming requires "type" *)
+InterfaceType      = "interface" "{" { InterfaceSpec ";" } "}" ;  (* Possibly unnamed *)
+InterfaceSpec      = MethodSpec | InterfaceTypeName ;
+InterfaceTypeName  = TypeName ;                 (* Embedded interface;
+                                                   its methods are added *)
+MethodSpec         = MethodName Signature ;     (* Compare to FunctionType *)
+MethodName         = identifier ;               (* FunctionType uses "func" here *)
 ```
 
 All types implement the empty interface:
@@ -194,7 +208,7 @@ An interface type `T` may not embed itself or any interface type that embeds
 ## Map types
 
 ```ebnf
-MapType     = "map" "[" KeyType "]" ElementType .
+MapType     = "map" "[" KeyType "]" ElementType ;
 ```
 
 The comparison operators == and != must be fully defined for operands of the key type; thus the key type must not be a function, map, or slice.
@@ -209,7 +223,7 @@ If the key type is an interface type, these comparison operators must be defined
 map[string]interface{}
 ```
 
-For a map `m`, 
+For a map `m`,
 
 - `len(m)` is the number of map elements
 - elements may be added during execution using assignments
@@ -229,7 +243,7 @@ A nil map is equivalent to an empty map except that no elements may be added.
 ## Channel types
 
 ```ebnf
-ChannelType = ( "chan" | "chan<-" | "<-chan" ) ElementType .
+ChannelType = ( "chan" | "chan<-" | "<-chan" ) ElementType ;
 ```
 
 The `<-` operator associates with the leftmost chan possible:
@@ -258,12 +272,12 @@ x, ok := <-ch
 A named and an unnamed type are always different.
 
 Two unnamed types are identical if they have the same literal structure and
-corresponding components have identical types. 
+corresponding components have identical types.
 
 ## Assignability
 
 ```go
-var x V = ...
+var x V = //...
 var y T = x	// assignable?
 ```
 
@@ -277,7 +291,7 @@ these cases:
 - V is a bidirectional channel, T is any kind of channel, both have identical
   element types.
 - x is nil, and T is any of: pointer, func, slice, map, channel, interface.
-- x is an untyped constant representable by T. 
+- x is an untyped constant representable by T.
 
 (TODO: try these rules)
 
@@ -335,4 +349,3 @@ TODO: compare grammer of const/var using a comparison table.
 TBD: Reorder LiteralType components
 TBD: Grammar, split ElementList => Keyed/PlainElementList
 TBD: Grammar, split into struct, map, array/slice
-
