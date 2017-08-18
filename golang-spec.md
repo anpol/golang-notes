@@ -115,8 +115,8 @@ of such an element; `&s[i]` is invalid.
 ## Struct types
 
 ```ebnf
-StructType     = "struct" "{" { StructSpec ";" } "}" .
-StructSpec     = (FieldDecl | AnonymousField) [ "...Tag..." ] .
+StructType     = "struct" "{" { StructSpec ";" } "}" ;
+StructSpec     = (FieldDecl | AnonymousField) [ "...Tag..." ] ;
 FieldDecl      = IdentifierList Type .
 AnonymousField = [ "*" ] TypeName .
 ```
@@ -139,10 +139,10 @@ a reflection interface; e.g. a tag could define protobuf field number.
 ## Function types
 
 ```ebnf
-FunctionType      = "func" Signature .                    // MethodSpec is similar
-Signature         = Parameters [ Result ] .
-Result            = Parameters | Type .
-Parameters        = "(" [ ParameterList [ "," ] ] ")" .   // "," is optional before ")", gofmt removes it
+FunctionType      = "func" Signature ;                    (* MethodSpec is similar *)
+Signature         = Parameters [ Result ] ;
+Result            = Parameters | Type ;
+Parameters        = "(" [ ParameterList [ "," ] ] ")" ;   (* "," is optional before ")", gofmt removes it *)
 ParameterList     = ParameterDecl { "," ParameterDecl } .
 ParameterDecl     = [ IdentifierList ] Type .             // IdentifierList is optional, while Type is not
 LastParameterDecl = [ identifier ] [ "..." ] Type .       // "..." is only possible for the last parameter
