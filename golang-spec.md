@@ -554,8 +554,8 @@ Primary expressions are the operands for [unary and binary expressions](#operato
 ## Operators
 
 ```ebnf
-Expression = UnaryExpr | Expression binary_op Expression .
-UnaryExpr  = PrimaryExpr | unary_op UnaryExpr .
+Expression = UnaryExpr | Expression binary_op Expression ;
+UnaryExpr  = PrimaryExpr | unary_op UnaryExpr ;
 ```
 
 Operators combine [operands](#operands) and [primary
