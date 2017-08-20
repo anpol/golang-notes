@@ -479,10 +479,94 @@ func(p *Point, factor float64)          // FunctionType of that method
 ```
 
 # Expressions
+
 ## Operands
-## Qualified identifiers
+
+```ebnf
+Operand =
+  Literal |
+  identifier |                  (* A constant, variable, or function *)
+  PackageName "." identifier |  (* A qualified identifier *)
+  MethodExpr |                  (* A function, whose first arg is a reciever *)
+  "(" Expression ")" ;          (* A parenthesized expression *)
+
+Literal  = BasicLit | CompositeLit | FunctionLit ;
+BasicLit = int_lit | float_lit | imaginary_lit | rune_lit | string_lit ;
+```
+
+Operands denote the elementary values in an expression.
+
 ## Composite literals
 
 - TBD: Reorder LiteralType components
 - TBD: Grammar, split ElementList => Keyed/PlainElementList
 - TBD: Grammar, split into struct, map, array/slice
+
+### Map literals
+### Struct literals
+### Array and slice literals
+### Element type elision
+### Parsing ambiguity in conditional statements
+
+## Function literals
+
+```ebnf
+FunctionLit = "func" Signature FunctionBody ;
+```
+
+A function literal represents an anonymous function, they are closures.
+
+A function literal could be bound to a named variable, but [nested function
+declarations](https://stackoverflow.com/questions/21961615/why-doesnt-go-allow-nested-function-declarations-functions-inside-functions)
+are not allowed.
+
+## Primary expressions
+
+```ebnf
+PrimaryExpr =
+  Operand |                                               (* Described earlier *)
+  Conversion |                                            (* Described later *)
+  PrimaryExpr "." identifier |                            (* Selector *)
+  PrimaryExpr "[" Expression "]" |                        (* Index *)
+  PrimaryExpr "[" [ Low ] ":" [ High ] "]" |              (* Simple Slice *)
+  PrimaryExpr "[" [ Low ] ":"   High ":" Max "]" |        (* Full Slice *)
+  PrimaryExpr "." "(" Type ")" |                          (* Type Assertion *)
+  PrimaryExpr "(" Type [ "," ExpressionList ] [ "," ] ")" (* new and make *)
+  PrimaryExpr "(" [ ExpressionList [ "," ] ] ")"          (* Simple Call *)
+  PrimaryExpr "(" ExpressionList [ "..." ] [ "," ] ")" ;  (* Variadic Call *)
+```
+
+Primary expressions are the operands for [unary and binary expressions](#operators).
+
+### Selectors
+
+- TBD
+
+### Method expressions
+### Method values
+### Index expressions
+### Simple slice expressions
+### Full slice expressions
+### Type assertions
+### Calls
+### Passing arguments to ... parameters
+
+## Operators
+
+```ebnf
+Expression = UnaryExpr | Expression binary_op Expression .
+UnaryExpr  = PrimaryExpr | unary_op UnaryExpr .
+```
+
+Operators combine [operands](#operands) and [primary
+expressions](#primary-expressions) into expressions.
+
+### Arithmetic operators
+### Comparison operators
+### Logical operators
+### Address operators
+### Receive operator
+
+## Conversions
+## Constant expressions
+## Order of evaluation

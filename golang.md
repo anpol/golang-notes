@@ -47,3 +47,7 @@ https://blog.golang.org/go-slices-usage-and-internals - see Further Reading
   - https://github.com/direnv/direnv/issues/232
   - https://github.com/urfave/cli + bash completion
 - https://github.com/golang/go/wiki/Projects
+
+## Make and New
+
+https://stackoverflow.com/questions/9320862/why-would-i-make-or-new
