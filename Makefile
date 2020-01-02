@@ -12,7 +12,7 @@ clean :
 	rm $(HTML_FILES)
 
 $(MD_HTML_FILES): %.html: %.md Makefile
-	pandoc --toc --from markdown --to html --standalone $< -o $@
+	pandoc --from markdown+autolink_bare_uris --to html --standalone --css ~/.dotfiles/pandoc/css/github-pandoc.css --toc $< -o $@
 
 $(RST_HTML_FILES): %.html: %.rst Makefile
 	rst2html.py $< $@
