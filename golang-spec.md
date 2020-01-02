@@ -1,6 +1,6 @@
 % Notes for [The Go Programming Language Specification](https://golang.org/ref/spec)
 <!--
-vim:et
+vim:et:spell
 GitHub width is 100
 -->
 
@@ -39,7 +39,7 @@ comma is optional and could occur before another delimiter.
 
 **A "," before ")"** could occur in the following productions:
 
-  - declarations: `Parameters` (parameter list, result list)
+  - declarations: `Parameters` (parenthesized tuple used to declared parameters, maybe used to declare results)
   - expressions: `Arguments`, `Conversion`
 
 **A "," before "}"** could occur in composite literals.
