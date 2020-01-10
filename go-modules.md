@@ -8,7 +8,7 @@ It's better to work-through the series executing the commands.
 
 Create a new module, initializing the go.mod file that describes it.
 ```sh
-go mod init 
+go mod init
 ```
 
 The `go` command also maintains a file named
@@ -42,7 +42,7 @@ The default version is `@latest`, which resolves to the latest version as follow
 Get a list of modules whose names are started with the specified prefix:
 
 ```sh
-go list -m rsc.io/q... — 
+go list -m rsc.io/q...
 ```
 
 The `go` command allows a build to include at most one version of any
@@ -53,7 +53,7 @@ those versions should have different module paths.  This convention is called
 * rsc.io/quote for v1.*
 * rsc.io/quote/v2 for v2.*
 * rsc.io/quote/v3 for v3.*
-* ... and so on. 
+* ... and so on.
 
 Having different paths for different major versions of a module gives module
 consumers the ability to upgrade to a new major version incrementally.
