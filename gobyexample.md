@@ -195,6 +195,14 @@ BTW The compiler takes different approaches, however:
 * If you have a non-addressable (temporary) value, you can only call
   methods having value receivers.
 
+EXTRA Definitions of addressable:
+
+* https://golang.org/ref/spec#Address_operators
+* https://golang.org/pkg/reflect/#Value.CanAddr
+* https://utcc.utoronto.ca/~cks/space/blog/programming/GoAddressableValues
+* https://stackoverflow.com/questions/38168329/why-are-map-values-not-addressable
+* https://stackoverflow.com/questions/48790663/why-value-stored-in-an-interface-is-not-addressable-in-golang
+
 EXTRA If you want to pass an addressable value to someone else, you can pass a
 pointer instead, to extend a usable method set.  See [Pointers vs.
 Values](https://golang.org/doc/effective_go.html#pointers_vs_values).
@@ -210,4 +218,50 @@ receiver?  No, not so simple.
 
 To summarize, a method can be defined with a value receiver, if it's a
 getter-style method that takes either a small `struct`, or a `map`, `func`,
-`chan`, or a non-reallocating slice.
+`chan`, or a non-reallocating slice.   You may wish to define a method with a
+value receiver if you want to call it in on temporary values.
+
+## interfaces
+
+To implement an interface in Go, we just need to implement all the methods in
+the interface.
+
+Interfaces allow us to make generic functions (but not structs.)
+
+More on interfaces:
+* https://jordanorelli.com/post/32665860244/how-to-use-interfaces-in-go -- STOPPED ad Twitter API
+* https://research.swtch.com/interfaces — TODO
+
+EXTRA:
+
+An interface is two things: it is *a method set,* but it is also *a type.*
+
+We design our abstractions in terms of what actions our types can execute.
+
+All types satisfy the empty `interface{}`.
+
+An interface definition does not prescribe whether an implementor should
+implement the interface using a pointer receiver or a value receiver.
+
+## errors
+
+errors.New constructs a basic error value with the given error message.
+```go
+    return -1, errors.New("can't work with 42")
+```
+
+It’s possible to use custom types as errors by implementing the Error() method
+on them. Here’s a variant on the example above that uses a custom type to
+explicitly represent an argument error.
+```go
+    type argError struct {
+        arg  int
+        prob string
+    }
+    func (e *argError) Error() string {
+        return fmt.Sprintf("%d - %s", e.arg, e.prob)
+    }
+```
+
+More on errors:
+http://blog.golang.org/2011/07/error-handling-and-go.html
