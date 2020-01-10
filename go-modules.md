@@ -72,15 +72,65 @@ go mod tidy
 
 ## Part 2 — Migrating To Go Modules
 
-TODO
+`go mod init` automatically imports dependencies from a number of formats used
+by a non-modules dependency manager tools.
+
+`go mod tidy` finds all the packages transitively imported by your packages.
+
+Run `go list -m all` and compare the resulting versions with your old
+dependency management file.  If you find a version that wasn't what you wanted,
+you can find out why using `go mod why -m` and/or `go mod graph`, and upgrade
+or downgrade to the correct version using `go get`:
+
+```sh
+$ go mod why -m rsc.io/binaryregexp
+[...]
+$ go mod graph | grep rsc.io/binaryregexp
+[...]
+$ go get rsc.io/binaryregexp@v0.2.0
+$
+```
+
+Using `go mod init` we can set the [custom import
+path](https://golang.org/cmd/go/#hdr-Remote_import_paths). Users may import
+packages with this path, and we must be careful not to change it.
+
+The `module` directive in `go.mod` declares the module path.
+
+When `go mod tidy` adds a requirement, it adds the latest version of the
+module.  You may wish to downgrade some modules with `go get`.
+
+`go test all` runs tests within the module cache, which is read-only.
+It may fail for a test that write files in the package directory.  The
+test should copy files it needs to write to a temporary directory instead.
+
+Similarly, for test inputs: you may need to copy the test inputs into your
+module, or convert the test inputs from raw files to data embedded in `.go`
+source files.
+
+You should tag and publish a release version for your new module.  Otherwise
+downstream users will depend on specific commits using pseudo-versions, which
+may be more difficult to support.
+
+```sh
+$ git tag v1.2.0
+$ git push origin v1.2.0
+```
+
+When using modules, the import path must match the canonical module path, if
+specified by [// import
+comments](https://golang.org/cmd/go/#hdr-Import_path_checking).
+
+A Go module with a major version above 1 must include a major-version suffix in
+its module path: for example, version `v2.0.0` must have the suffix `/v2`.
 
 ## Part 3 — Publishing Go Modules
 
-TODO
+TODO https://blog.golang.org/publishing-go-modules
 
 ## Part 4 — Go Modules: v2 and Beyond
 
-TODO
+TODO https://blog.golang.org/v2-go-modules
 
 # Go & Versioning, by Russ Cox, Feb 2018 – Dec 2019
 
