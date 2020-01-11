@@ -1,10 +1,10 @@
 # Go Modules in Go Blog, Mar 2019 – Nov 2019
 
-Link: https://blog.golang.org/using-go-modules
-
 It's better to work-through the series executing the commands.
 
 ## Part 1 — Using Go Modules
+
+Link: https://blog.golang.org/using-go-modules
 
 Create a new module, initializing the go.mod file that describes it.
 ```sh
@@ -72,6 +72,8 @@ go mod tidy
 
 ## Part 2 — Migrating To Go Modules
 
+Link: https://blog.golang.org/migrating-to-go-modules
+
 `go mod init` automatically imports dependencies from a number of formats used
 by a non-modules dependency manager tools.
 
@@ -126,11 +128,44 @@ its module path: for example, version `v2.0.0` must have the suffix `/v2`.
 
 ## Part 3 — Publishing Go Modules
 
-TODO https://blog.golang.org/publishing-go-modules
+Link: https://blog.golang.org/publishing-go-modules
+
+You can specify pre-release versions by appending a hyphen and dot separated
+identifiers (for example, v1.0.1-alpha or v2.2.2-beta.2). Normal releases are
+[preferred](https://semver.org/spec/v2.0.0.html#spec-item-11) by the go command
+over pre-release versions, so users must ask for pre-release versions
+explicitly, if your module has any normal releases.
+
+v0 major versions and pre-release versions do not guarantee backwards
+compatibility.
+
+v1 major versions and beyond require backwards compatibility within that major
+version.
+
+The [module mirror and checksum
+database](https://blog.golang.org/module-mirror-launch) store modules, their
+versions, and signed cryptographic hashes to ensure that the build of a given
+version remains reproducible over time.
+
+Before each tagging, run
+
+```sh
+$ go mod tidy
+$ go test ./...
+```
+
+Upon pushing a tag, explicitly request that version via `go get
+module@version`. After one minute for caches to expire, the go command will see
+that tagged version. If this doesn't work for you, please file an issue.
+
+Run `go list -m example.com/hello@v0.1.0` to confirm the latest version is
+available.
 
 ## Part 4 — Go Modules: v2 and Beyond
 
-TODO https://blog.golang.org/v2-go-modules
+Link: https://blog.golang.org/v2-go-modules
+
+TODO
 
 # Go & Versioning, by Russ Cox, Feb 2018 – Dec 2019
 
