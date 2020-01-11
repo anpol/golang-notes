@@ -249,7 +249,15 @@ For your consumer, simply adding an import statement `import "foo"` is
 sufficient. (Subsequent commands like `go build` or `go test` will
 automatically download `foo` and update `go.mod` as needed).
 
-TODO: https://github.com/golang/go/wiki/Modules#avoid-breaking-existing-import-paths
+TODO: https://github.com/golang/go/wiki/Modules#when-should-i-use-the-replace-directive
+
+# Go modules by example, by Paul Jolly
+
+Link: https://github.com/go-modules-by-example/index
+
+## Tools as dependencies
+
+TODO: https://github.com/go-modules-by-example/index/blob/master/010_tools/README.md
 
 # Go & Versioning, by Russ Cox, Feb 2018 – Dec 2019
 
@@ -258,5 +266,3 @@ Link: https://youtu.be/F8nrpe0XWRg
 Link: https://go.googlesource.com/proposal/+/master/design/24301-versioned-go.md
 
 Link: https://research.swtch.com/vgo
-
-TODO
