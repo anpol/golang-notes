@@ -132,14 +132,34 @@ Link: https://blog.golang.org/publishing-go-modules
 
 You can specify pre-release versions by appending a hyphen and dot separated
 identifiers (for example, v1.0.1-alpha or v2.2.2-beta.2). Normal releases are
-[preferred](https://semver.org/spec/v2.0.0.html#spec-item-11) by the go command
-over pre-release versions, so users must ask for pre-release versions
-explicitly, if your module has any normal releases.
+preferred by the go command over pre-release versions, so users must ask for
+pre-release versions explicitly, if your module has any normal releases.
 
-v0 major versions and pre-release versions do not guarantee backwards
+The versions are [sorted as follows](https://semver.org/#spec-item-11):
+
+* 0.1.0
+* 0.1.1
+* 1.0.0-alpha
+* 1.0.0-alpha.1
+* 1.0.0-alpha.beta
+* 1.0.0-beta
+* 1.0.0-beta.2
+* 1.0.0-beta.11
+* 1.0.0-rc.1
+* 1.0.0
+* 2.0.0
+* 2.1.0
+* 2.1.1
+
+Dot-separated identifiers consisting of only digits are compared numerically
+and identifiers with letters or hyphens are compared lexically in ASCII sort
+order.  A larger set of pre-release fields has a higher precedence than a
+smaller set.
+
+`v0` major versions and pre-release versions do not guarantee backwards
 compatibility.
 
-v1 major versions and beyond require backwards compatibility within that major
+`v1` major versions and beyond require backwards compatibility within that major
 version.
 
 The [module mirror and checksum
@@ -165,9 +185,77 @@ available.
 
 Link: https://blog.golang.org/v2-go-modules
 
-TODO
+A new major version of a module must have a different module path than the
+previous major version. Starting with v2, the major version must appear at
+the end of the module path
+
+* preceded with slash, like `/v1`
+* preceded with dot, like `.v1` - for [gopkg.in](https://labix.org/gopkg.in)
+  packages only.
+
+Although a version suffix is part of the import path, code importing it must
+still refer to the Go package using its actual name, without a suffix.
+
+Suffixes are needed to solve the *diamond dependency problem*.
+
+It's recommended to develop multiple major versions in the master branch
+because it is compatible with a wider variety of existing tools. So it's not
+mandatory unless you wish to support those tools (such as `dep`).
+
+# Modules in Go Wiki
+
+Link: https://github.com/golang/go/wiki/Modules @
+[b49ecf0e4c71819312481dc3a991394499328609](https://github.com/golang/go/wiki/Modules/b49ecf0e4c71819312481dc3a991394499328609)
+
+If you have private code, you most likely should configure the GOPRIVATE
+setting (such as go env -w
+GOPRIVATE=bitbucket.org/secret/repo,github.com/secret/repo)
+
+`go list -m all` — View final versions used in build
+
+`go list -u -m all` — Similar, also view versions upgrades
+
+`go get -u`  — Upgrade the deps of your current package, but not the entire module.
+
+`go get -u ./...` — Upgrade deps to latest minor versions, for the entire module, excluding test dependencies.
+
+`go get -u -t ./...` – Similar, but also upgrades test dependencies.
+
+`go get -u=patch ./...` — Similar, upgrade deps to latest patch versions, excluding test dependencies.
+
+When upgrading foo, start from doing `go get` without `-u`:
+```sh
+$ go get foo
+
+# and after things are working, consider one of:
+$ go get -u=patch foo
+$ go get -u=patch
+$ go get -u foo
+$ go get -u
+```
+
+To upgrade or downgrade to a more specific version, `go get` allows version
+selection to be overridden by adding an `@version` suffix or ["module
+query"](https://golang.org/cmd/go/#hdr-Module_queries) to the package argument,
+such as:
+```sh
+$ go get foo@v1.6.2
+$ go get foo@e3702bed2
+$ go get foo@'<v1.6.2'
+```
+
+When writing install instructions for module `foo`, don't mention `go get foo`.
+For your consumer, simply adding an import statement `import "foo"` is
+sufficient. (Subsequent commands like `go build` or `go test` will
+automatically download `foo` and update `go.mod` as needed).
+
+TODO: https://github.com/golang/go/wiki/Modules#avoid-breaking-existing-import-paths
 
 # Go & Versioning, by Russ Cox, Feb 2018 – Dec 2019
+
+Link: https://youtu.be/F8nrpe0XWRg
+
+Link: https://go.googlesource.com/proposal/+/master/design/24301-versioned-go.md
 
 Link: https://research.swtch.com/vgo
 
