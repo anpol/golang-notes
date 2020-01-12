@@ -249,7 +249,78 @@ For your consumer, simply adding an import statement `import "foo"` is
 sufficient. (Subsequent commands like `go build` or `go test` will
 automatically download `foo` and update `go.mod` as needed).
 
-TODO: https://github.com/golang/go/wiki/Modules#when-should-i-use-the-replace-directive
+### FAQ: replace directive
+
+`replace` directive in `go.mod`:
+
+* allows control over the exact version used for a dependency
+* allows the use of a forked dependency
+* allows the use of a local fork for edits (see
+  [gohack](https://github.com/rogpeppe/gohack))
+* can be used to inform of on-disk location in a [multi-module
+  project](https://github.com/golang-standards/project-layout/issues/18)
+
+`go mod edit` can be used instead of editing `go.mod` directly.
+
+### FAQ: vendoring with modules, using of network
+
+`go mod download` fetches deps into the cache, almost never required.
+
+`go mod vendor` resets the main module's vendor directory to include all deps.
+
+`go build` will by default reach out to the network as needed to satisfy imports.
+
+`go build -mod=vendor` instructs to use the top-level vendor directory for deps.
+
+`go build -mod=readonly` prohibits from modifying `go.mod`.
+
+### FAQ: go mod tidy
+
+`go mod tidy` ensures your current `go.mod` reflects the dependency
+requirements for all possible combinations of OS, architecture, and build tags.
+In contrast, other commands only update `go.mod` under the current GOOS,
+GOARCH, and build tags.
+
+If a dependency of your module does not itself have a `go.mod`, or if its
+`go.mod` is missing one or more of its dependencies, then the missing
+transitive dependencies will be added to *your* module's requirements, along
+with an `// indirect` comment.
+
+Another reason you might have `// indirect` dependencies is if you have
+upgraded (or downgraded) one of your indirect dependencies beyond what is
+required by your direct dependencies.  The go tooling needs a place to record
+those new versions, and it does so in your `go.mod` file.
+
+If you are curious as to why a particular module is showing up in your
+`go.mod`, you can [run
+either](https://github.com/go-modules-by-example/index/tree/master/018_go_list_mod_graph_why):
+```sh
+go mod why -m <module>
+go mod graph
+go list -m all.
+```
+
+### FAQ: go.sum
+
+The `go.mod` files in a build provide enough information for 100% reproducible
+builds, so `go.sum` is not for build reproducibility (it's not a "lock file").
+
+`go.sum` retains cryptographic checksums for module versions even after you
+stop using a module or particular module version. This allows validation of the
+checksums if you later resume using something, which provides additional
+safety.
+
+`go.sum` should be committed into VCS.  If someone clones your repository and
+downloads your dependencies using the `go` command, they will receive an error
+if there is any mismatch between their copies and your `go.sum`.
+
+`go mod verify` checks that the on-disk cached copies of downloads still match
+`go.sum`.
+
+`go.mod` should be committed into VCS, even if I does not have any
+dependencies.
+
+TODO: https://github.com/golang/go/wiki/Modules#faqs--semantic-import-versioning
 
 # Go modules by example, by Paul Jolly
 
